@@ -25,7 +25,17 @@ export default class App{
             width : 360 ,
             height : 640,
             scene : scenes,
-            backgroundColor : 0x000
+            backgroundColor : 0x000,
+            physics: {
+                default: "matter",
+                matter: {
+                    debug: true,
+                    gravity:{
+                        x:0,
+                        y:0
+                    }
+                }
+            },
         }
 
         //game init

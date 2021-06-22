@@ -1,6 +1,7 @@
 export default class Entity{
     constructor(ctx,x,y,key){
         this.ctx = ctx;
+        this.CONFIG = this.ctx.sys.game.CONFIG;
         this.x = x;
         this.y = y;
         this.key = key;
@@ -39,6 +40,16 @@ export default class Entity{
             this.spr.destroy();
         }
         this.spr = this.ctx.add.sprite(this.x,this.y,this.key);
+        this.spr.setOrigin(0.5);
+    }
+    createPhysicsSprite(l){
+        if(this.spr){
+            this.spr.destroy();
+        }
+        if(l)
+        this.spr = this.ctx.matter.add.sprite(this.x,this.y,this.key,null,{label:l}).setFixedRotation();
+        else
+        this.spr = this.ctx.matter.add.sprite(this.x,this.y,this.key);
         this.spr.setOrigin(0.5);
     }
 
@@ -154,4 +165,8 @@ export default class Entity{
             }
         }
     }
+
+    //getter methods
+
+   
 }

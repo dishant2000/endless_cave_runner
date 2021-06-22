@@ -9,6 +9,7 @@ export default class Boot extends Phaser.Scene{
     init(){
         this.URL = this.sys.game.URL;
         this.CONFIG = this.sys.game.CONFIG;
+        
     }
     preload(){
         //this.load.setPath(this.URL + "assets/fonts");

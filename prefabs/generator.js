@@ -19,6 +19,7 @@ export default class Generator{
         this.ty_offset = 0;
         this.px_offset = 0;
         this.height = 0;
+        this.currHightFactor = 0;
     }
     setup(){
         this.createFloor();
@@ -53,19 +54,21 @@ export default class Generator{
             }
         }
         this.layers.floor = floor;
+        // console.log("initfloor = ",this.layers.floor)
     }
     scrollFloor(){
         let offset = this.ctx.cameras.main.scrollY - this.layers.floor[0][0].y;
         if(offset >= this.CONFIG.tile){
-            this.destroyFloorRow();
             this.appendFloorRow();
+            this.destroyFloorRow();
         }
     }
     destroyFloorRow(){
         for(let i = 0 ; i < this.layers.floor[0].length;i++){
             this.layers.floor[0][i].destroy();
         }
-        this.layers.floor.splice(1,0);
+        this.layers.floor.splice(0,1);
+
     }
     appendFloorRow(){
         let spr;
@@ -74,7 +77,7 @@ export default class Generator{
         for(let j = 0 ; j < this.cols; j++)
             {
                 let x = j * this.CONFIG.tile + this.CONFIG.map_offset;
-                let y = i * this.CONFIG.tile;
+                let y = (i - 1) * this.CONFIG.tile + this.ctx.cameras.main.scrollY;
 
                 spr = this.ctx.add.sprite(x,y,'floortile');
                 spr.setOrigin(0);
@@ -87,6 +90,8 @@ export default class Generator{
 
     //wall layer
     createRoom(){
+        //current scroll
+        let curr_scroll = this.ctx.cameras.main.scrollY;
         //generate wall
         let walls = this.generateWalls();
         // paste it on the canvas
@@ -95,6 +100,7 @@ export default class Generator{
         this.layers.walls = this.layers.walls.concat(walls);
         // console.log(this.layers.walls);
         this.saveHeight();
+        this.currHightFactor = curr_scroll + this.height;
         
     }
 
@@ -184,23 +190,21 @@ export default class Generator{
         return row;
     }
     createWalls(walls){
-        let x,y,spr;
-        // console.log(walls.length);   
+        let x,y,spr;  
         for(let ty = 0 ; ty  < walls.length; ty++){
+            y = ty*this.CONFIG.tile + this.height;
             for(let tx = 0 ; tx < walls[ty].length; tx++){
-                x = (tx * this.CONFIG.tile)  + this.CONFIG.map_offset;
-                y = (ty + this.layers.walls.length)*this.CONFIG.tile;
-
+                x = (tx * this.CONFIG.tile)  + this.CONFIG.map_offset + Math.round(this.CONFIG.tile/2);
                 if(walls[ty][tx].is_wall){
-                    // console.log("yae chala tha")
-                    spr = this.ctx.add.sprite(x,y,'wall');
-                    spr.setOrigin(0);
+                    spr = this.ctx.matter.add.sprite(x,y,'wall',null,{label : 'wall'});
+                    spr.setStatic(true);
+                    spr.setOrigin(0.5);
                     spr.setDepth(this.DEPTH.wall);
                     walls[ty][tx].spr = spr;
-                    // console.log(walls[ty][tx].spr);
                 }
             }
         }
+        
         return walls;
     }
 
@@ -211,23 +215,33 @@ export default class Generator{
         this.px_offset = this.ctx.cameras.main.scrollY;
         this.destroyPassedRows();
         this.createRoom();
+        
     }
     saveHeight(){
-        this.height = this.layers.walls.length * this.CONFIG.tile;
+        this.height += 30 * this.CONFIG.tile  ;
     }
     destroyPassedRows(){
-        let row_num = Math.floor(this.px_offset/this.CONFIG.tile);
-        for(let i = 0 ; i < row_num; i++){
+        let row_r_num = 0;;
+        for(let i = 0; i < this.layers.walls.length;i++){
+            if(this.layers.walls[i][0].spr){
+                if(this.layers.walls[i][0].spr.y < this.px_offset){
+                    row_r_num ++;
+                }
+                else{
+                    break;
+                }
+            }
+        }
+        // finding the real row num
+        for(let i = 0 ; i < row_r_num; i++){
             for(let j = 0 ; j < this.cols; j++){
                 if(this.layers.walls[i][j].spr){
                     this.layers.walls[i][j].spr.destroy();
                 }
-
-            }
-
-            // this.layers.walls = this.layers.walls.shift();
+            }         
         }
-        // this.layers.walls = this.layers.walls.shift();
-        // console.log(this.layers.walls);
+        for(let i = 0 ; i < row_r_num; i++){
+            this.layers.walls.splice(0,1);
+        }
     }
 }

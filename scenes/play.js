@@ -44,7 +44,12 @@ export default class Play extends Phaser.Scene{
         this.createPlayer();
         this.player.setDepth(this.DEPTH.player);
         this.player.startMoving();
+        this.player.handleMatterCollision();
         this.createZones();
+
+        // testing purpose codes
+        // console.log("boitton and left and right , ",this.player.getBottomLeftTile(),this.player.getBottomRightTile());
+        
     }
     update(){
         //move camera donwn
@@ -63,17 +68,14 @@ export default class Play extends Phaser.Scene{
         
     }
     updateCamera(){
-        // console.log("scrolly = ",this.cameras.main.scrollY);
         this.cameras.main.setScroll(
             0,
             this.cameras.main.scrollY + this.camSpeed.current
         )
 
         let centerY = this.cameras.main.scrollY + 0.5*this.cameras.main.height;
-        if(this.player.y >= centerY){
-            // console.log(this.cameras.main.scrollY);
-            this.cameras.main.setScroll(0,
-                this.player.y - 0.5 * this.cameras.main.height);
+        if(this.player.spr.y >= centerY){
+            this.cameras.main.setScroll(0,this.player.spr.y - 0.5 * this.cameras.main.height);
         }
 
     }
@@ -88,9 +90,9 @@ export default class Play extends Phaser.Scene{
     createPlayer(){
         this.player = new Player(this,
             this.CONFIG.centerX,
-            0,
+            16,
             'spr-hero');
-        this.player.createSprite();
+        this.player.createPhysicsSprite('player');
 
     }
     createZones(){
@@ -107,13 +109,6 @@ export default class Play extends Phaser.Scene{
         this.zone_right.setOrigin(0,0);
         this.zone_right.setDepth(this.DEPTH.ui);
         this.zone_right.setScrollFactor(0);
-
-        //console.log("width = ",this.CONFIG.width);
-        // this.temparea = this.add.graphics({x : this.CONFIG.width - w,y : 0});
-        // this.temparea.fillStyle("0x000000",0.5);
-        // this.temparea.fillRect(0,0,w,h);
-        // this.temparea.setDepth(2);
-        // making the zones interactive 
 
         this.zone_left.setInteractive();
 

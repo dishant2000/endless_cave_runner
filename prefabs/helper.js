@@ -5,4 +5,5 @@ export default class Helper{
     genrateRangeRand(min,max){
         return Math.floor(Math.random() * (max - min) + min); 
     }
+    
 }
