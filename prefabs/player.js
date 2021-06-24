@@ -10,6 +10,7 @@ export default class Player extends Entity{
             max : 6
         }
         this.helper = new Helper()
+        this.setHealth(3,3);
     }
     //setters
     setDepth(d){
@@ -28,7 +29,9 @@ export default class Player extends Entity{
 
     }
     update(is_holding){
-        if(this.states.dead) return;
+        if(this.states.dead){
+            this.handleDeadState();
+        }
 
        
         this.setCurrentDirection(is_holding);
@@ -37,10 +40,27 @@ export default class Player extends Entity{
         }
         if(this.direction.last !== this.direction.current)
             this.updatePlayerAnim();
-        
+        this.checkScrollDeath();
         
     }
-
+    handleDeadState(){
+        this.spr.setVelocityX(0);
+        this.spr.setVelocityY(0);
+        let scroll = this.ctx.cameras.main.scrollY;
+        this.ctx.cameras.main.setScroll(0,this.spr.y - this.CONFIG.tile*1.7);
+    }
+    checkScrollDeath(){
+        if(this.states.dead) return;
+        if(this.getTopY() <= Math.round(this.ctx.cameras.main.scrollY + this.CONFIG.tile*1.5)){
+            this.die();
+        }
+    }
+    die(){
+        if(this.states.dead) return;
+        this.health.current = 0;
+        this.setStates('dead');
+        this.startDeadAnim();
+    }
     updatePlayerAnim(){
         this.stopAnim();
         switch(this.direction.current){

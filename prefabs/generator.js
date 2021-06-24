@@ -15,7 +15,7 @@ export default class Generator{
             turrets : [],
             overlay : false
         }
-        this.heper = new Helper();
+        this.helper = new Helper();
         this.ty_offset = 0;
         this.px_offset = 0;
         this.height = 0;
@@ -24,6 +24,7 @@ export default class Generator{
     setup(){
         this.createFloor();
         this.createRoom();
+        this.drawSpikes();
     }
     update(){
         this.scrollFloor();
@@ -133,19 +134,18 @@ export default class Generator{
         // here we have to find how many gaps should be there and how many wide they are and where to place them
 
         let gaps = [];
-
-        for(let i = 0 ; i < this.heper.genrateRangeRand(1,2); i++){
+        for(let i = 0 ; i < this.helper.genrateRangeRand(1,3); i++){
             gaps.push({
                 idx : i,
                 width : 2
             })
         }
 
-        let tx = this.heper.genrateRangeRand(1,this.cols - gaps[0].width - 1);
+        let tx = this.helper.genrateRangeRand(1,this.cols - gaps[0].width - 1);
         gaps[0] = this.buildGap(tx,gaps[0].width);
         
         if(gaps[1]){
-            let tx = this.heper.genrateRangeRand(1,this.cols - gaps[1].width - 1);
+            let tx = this.helper.genrateRangeRand(1,this.cols - gaps[1].width - 1);
             gaps[1] = this.buildGap(tx,gaps[1].width);
         }
 
@@ -243,5 +243,24 @@ export default class Generator{
         for(let i = 0 ; i < row_r_num; i++){
             this.layers.walls.splice(0,1);
         }
+    }
+
+    // overlay spikes
+
+    drawSpikes(){
+        let x,y,spr;
+        let ty = 0;
+        let overlay = []
+        for(let tx = 0 ; tx < this.cols; tx++){
+            x = tx*this.CONFIG.tile + this.CONFIG.map_offset;
+            y = ty*this.CONFIG.tile+16;
+            let spr = this.ctx.add.sprite(x,y,'spike');
+            spr.setOrigin(0);
+            spr.setDepth(this.DEPTH.overlay);
+            spr.setScrollFactor(0);
+            overlay.push(spr);
+        }
+
+        this.layers.overlay = overlay;
     }
 }

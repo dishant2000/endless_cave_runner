@@ -5,6 +5,9 @@ import floortile from '../assets/img/dirt.png'
 import spr_heroleft from '../assets/img/herolefttiledemo.png'
 import spr_heroright from '../assets/img/herorighttiledemo.png'
 import wall32 from '../assets/img/wall32.png';
+import spikes from '../assets/img/spikes.png';
+import pauseButton from '../assets/img/btn_pause.png';
+import heart from '../assets/img/heart.png';
 export default class Preload extends Phaser.Scene{
     constructor(){
         super({key : 'Preload', active : false});
@@ -19,13 +22,15 @@ export default class Preload extends Phaser.Scene{
         // create a loading bar
         this.createBkg();
         this.createLoadingBar();
-        //load spritesheets
-        // this.load.setPath("../assets/img");        
+        //load spritesheets 
         this.load.spritesheet('spr-hero' , spr_hero, {frameWidth : 32, frameHeight : 32,spacing :10});
         this.load.spritesheet('floortile',floortile,{frameWidth: 32,frameHeight : 32});
         this.load.spritesheet('spr-heroleft',spr_heroleft,{frameWidth : 32, frameHeight : 32,spacing :10});
         this.load.spritesheet('spr-heroright',spr_heroright,{frameWidth : 32, frameHeight : 32,spacing :10});
         this.load.spritesheet('wall',wall32,{frameWidth : 32, frameHeight : 32});
+        this.load.spritesheet('spike',spikes,{frameWidth:32,frameHeight:32,spacing:10});
+        this.load.spritesheet('pause',pauseButton,{frameWidth:64,frameHeight:64});
+        this.load.spritesheet('heart',heart,{frameWidth:32,frameHeight:32,spacing:10});
     }
     create(){
         //console.log("preload running ")
@@ -108,6 +113,12 @@ export default class Preload extends Phaser.Scene{
             frames : this.anims.generateFrameNames('spr-heroright',{frames : [3,2,1,0]}),
             repeat : -1,
             frameRate : 12
+        })
+
+        this.anims.create({
+            key:'spr-hero-dead',
+            frames : this.anims.generateFrameNames('spr-hero',{frames:[4]}),
+            repeat:-1
         })
     }
 

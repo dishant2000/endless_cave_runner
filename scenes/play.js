@@ -1,4 +1,4 @@
-import Phaser from 'phaser'
+import Phaser,{Button} from 'phaser'
 import Generator from '../prefabs/generator'
 import Player from '../prefabs/player'
 export default class Play extends Phaser.Scene{
@@ -46,6 +46,8 @@ export default class Play extends Phaser.Scene{
         this.player.startMoving();
         this.player.handleMatterCollision();
         this.createZones();
+        //ui elements like topbar and the buttons and all
+        this.createUI();
 
         // testing purpose codes
         // console.log("boitton and left and right , ",this.player.getBottomLeftTile(),this.player.getBottomRightTile());
@@ -64,8 +66,26 @@ export default class Play extends Phaser.Scene{
 
         //moving the player
         this.player.update(this.is_holding)
+        if(this.player.states.dead){
+            this.triggerGameOver();
+            return;
+        }
         
-        
+    }
+    triggerGameOver(){
+        if(this.is_gameover) return;
+        this.is_gameover = true;
+        this.time.addEvent({
+            delay : 1000,
+            callback:this.goMenu,
+            callbackScope : this
+        })
+    }
+    goMenu(){
+        this.scene.start('Menu')
+    }
+    stopCamera(){
+        this.cameras.main.setScroll(0,0);
     }
     updateCamera(){
         this.cameras.main.setScroll(
@@ -90,7 +110,7 @@ export default class Play extends Phaser.Scene{
     createPlayer(){
         this.player = new Player(this,
             this.CONFIG.centerX,
-            16,
+            this.CONFIG.tile*2.5,
             'spr-hero');
         this.player.createPhysicsSprite('player');
 
@@ -151,6 +171,38 @@ export default class Play extends Phaser.Scene{
         }
         else{
             this.is_holding.direction = false;
+        }
+    }
+
+    createUI(){
+        //topheath bar
+        this.topBar = this.createBar(this.CONFIG.map_offset,0,this.CONFIG.width - this.CONFIG.map_offset*2,16);
+        //bottom bar
+        this.bottomBar = this.createBar(this.CONFIG.map_offset,this.CONFIG.height-this.CONFIG.tile,this.CONFIG.width - this.CONFIG.map_offset*2,this.CONFIG.tile);
+        //pauseBtn
+        this.btn_pause = this.add.sprite(-4,0,'pause').setScrollFactor(0).setDepth(this.DEPTH.ui).setOrigin(0);
+        //rendering health bar
+        this.createHealthBar(this.CONFIG.width - this.CONFIG.tile*3,4)
+
+    }
+    createBar(x,y,width,height){
+        let topBar;
+        topBar = this.add.graphics({x : x, y : y});
+        topBar.fillRect(0,0,width,height);
+        topBar.fillStyle("0x3B0E2E",1);
+        topBar.setDepth(this.DEPTH.ui);
+        topBar.setScrollFactor(0);
+        topBar.setDataEnabled();
+        topBar.setData("centerX",x + 0.5*width);
+        topBar.setData("centerY",y + 0.5*height);
+        return topBar;
+    }
+    createHealthBar(x,y){
+        this.heartArr = [];
+        let step = this.CONFIG.tile;
+        for(let i = 0 ; i < this.player.health.current;i++){
+            let icn = this.add.sprite(x + i*step,y,'heart').setDepth(this.DEPTH.ui).setOrigin(0).setScrollFactor(0).setScale(0.65).setFrame(0);
+            this.heartArr.push(icn);
         }
     }
 }

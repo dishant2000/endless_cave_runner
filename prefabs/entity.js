@@ -23,7 +23,7 @@ export default class Entity{
             current : 'down'
         }
         this.health = {
-            total : 1,
+            total : 3,
             current : 1
         }
         this.speed = {
@@ -102,6 +102,9 @@ export default class Entity{
     stopAnim(){
         this.spr.anims.stop();
     }
+    startDeadAnim(){
+        this.spr.play(this.key + '-dead');
+    }
     
     setSpritePos(x,y){
         if(typeof(x) === 'number'){
@@ -165,8 +168,14 @@ export default class Entity{
             }
         }
     }
+    setHealth(curr,total){
+        this.health.total = total;
+        this.health.current = Math.min(this.health.total,curr);
+    }
 
     //getter methods
 
-   
+   getTopY(){
+       return this.spr.y - 0.5*this.CONFIG.tile;
+   }
 }
