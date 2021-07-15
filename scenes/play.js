@@ -1,6 +1,8 @@
-import Phaser,{Button} from 'phaser'
+import Phaser from 'phaser'
 import Generator from '../prefabs/generator'
 import Player from '../prefabs/player'
+import Text from '../prefabs/Text';
+import Button from '../prefabs/Button'
 export default class Play extends Phaser.Scene{
     constructor(){
         super({key : "Play",active : false});
@@ -24,6 +26,7 @@ export default class Play extends Phaser.Scene{
         this.allow_input = true;
         this.is_gamepause = false;
         this.is_gameover = false;
+        this.is_pause = false;
         this.generator = new Generator(this);
         this.camSpeed = {
             base : 0,
@@ -47,19 +50,15 @@ export default class Play extends Phaser.Scene{
         this.player.handleMatterCollision();
         this.createZones();
         //ui elements like topbar and the buttons and all
-        this.createUI();
-
-        // testing purpose codes
-        // console.log("boitton and left and right , ",this.player.getBottomLeftTile(),this.player.getBottomRightTile());
-        
+        this.createUI(); 
+        this.createPauseScreen();       
     }
     update(){
         //move camera donwn
-        // console.log(this.cameras.main.height);
-       
-        
+
         this.updateCamera();
         this.setCamSpeed(1)
+
         //fill with new tiles 
         //delete passed tiles
         this.generator.update();
@@ -70,19 +69,69 @@ export default class Play extends Phaser.Scene{
             this.triggerGameOver();
             return;
         }
-        
+        //updating the ui
+        this.updateUI();
+    }
+
+
+    updateUI(){
+        if(this.player.health.current < this.player.health.total){
+            this.heartArr.forEach((heart,i)=>{
+                if(i+1 <= this.player.health.current){
+                    heart.setFrame(0);
+                }
+                else{
+                    heart.setFrame(1);
+                }
+            })
+        }
+
+        //updating the score
+        let currscore = Math.floor(this.player.getTopY()/this.CONFIG.tile);
+        this.score = currscore;
+        this.curr_score.setText(`Distance : ${currscore}`);
     }
     triggerGameOver(){
         if(this.is_gameover) return;
         this.is_gameover = true;
         this.time.addEvent({
             delay : 1000,
-            callback:this.goMenu,
+            callback:this.showGameOver,
             callbackScope : this
         })
     }
     goMenu(){
         this.scene.start('Menu')
+    }
+    showGameOver(){
+        // hide all things 
+        this.btn_pause.setVisible(false);
+        this.curr_score.setVisible(false);
+        this.heartArr.forEach(heart => {
+            heart.setVisible(false);
+        })
+
+        // show gameover scene
+        // launch runs the scene in parallel of the current scene.
+        this.scene.launch('GameOver',{score : this.score});
+        let panel = this.scene.get('GameOver');
+
+        panel.events.on('clickMenu',this.handleGoMenu,this);
+        panel.events.on('clickTryAgain',this.handleTryAgain,this);
+        
+        
+    }
+
+    stopGameOver(){
+        this.scene.stop('GameOver');
+    }
+    handleGoMenu(){
+        this.stopGameOver();
+        this.goMenu();
+    }
+    handleTryAgain(){
+        this.stopGameOver();
+        this.scene.restart();
     }
     stopCamera(){
         this.cameras.main.setScroll(0,0);
@@ -176,33 +225,91 @@ export default class Play extends Phaser.Scene{
 
     createUI(){
         //topheath bar
-        this.topBar = this.createBar(this.CONFIG.map_offset,0,this.CONFIG.width - this.CONFIG.map_offset*2,16);
+        this.topBar = this.createBar(this.CONFIG.map_offset,0,this.CONFIG.width - this.CONFIG.map_offset*2,16,"0x3B0E2E");
         //bottom bar
-        this.bottomBar = this.createBar(this.CONFIG.map_offset,this.CONFIG.height-this.CONFIG.tile,this.CONFIG.width - this.CONFIG.map_offset*2,this.CONFIG.tile);
+        this.bottomBar = this.createBar(this.CONFIG.map_offset,this.CONFIG.height-this.CONFIG.tile*1.5,(this.CONFIG.width - this.CONFIG.map_offset*2),this.CONFIG.tile*1.5,"0x211708");
         //pauseBtn
-        this.btn_pause = this.add.sprite(-4,0,'pause').setScrollFactor(0).setDepth(this.DEPTH.ui).setOrigin(0);
+        // this.btn_pause = this.add.sprite(-4,0,'pause').setScrollFactor(0).setDepth(this.DEPTH.ui).setOrigin(0);
+        this.btn_pause = new Button(this,-4,0,'pause',this.handlePause);
+        this.btn_pause.setOrigin(0,0)
+        this.btn_pause.setDepth(this.DEPTH.ui);
+        this.btn_pause.setScrollFactor(0,0);
         //rendering health bar
         this.createHealthBar(this.CONFIG.width - this.CONFIG.tile*3,4)
+        // score text
+        
+        this.curr_score = new Text(this,this.bottomBar.getData("centerX"),this.bottomBar.getData("centerY"),"Distance : 0",'score',0.5);
+        this.curr_score.setDepth(this.DEPTH.ui);
+        this.curr_score.setScrollFactor(0);
 
     }
-    createBar(x,y,width,height){
-        let topBar;
-        topBar = this.add.graphics({x : x, y : y});
-        topBar.fillRect(0,0,width,height);
-        topBar.fillStyle("0x3B0E2E",1);
-        topBar.setDepth(this.DEPTH.ui);
-        topBar.setScrollFactor(0);
-        topBar.setDataEnabled();
-        topBar.setData("centerX",x + 0.5*width);
-        topBar.setData("centerY",y + 0.5*height);
-        return topBar;
+    createBar(x,y,width,height,color){
+        let bar;
+        bar = this.add.graphics({x : x, y : y});
+        bar.fillStyle(color,1);
+        bar.fillRect(0,0,width,height);
+        bar.setDepth(this.DEPTH.ui);
+        bar.setScrollFactor(0);
+        bar.setDataEnabled();
+        bar.setData("centerX",x + 0.5*width);
+        bar.setData("centerY",y + 0.5*height);
+        return bar;
     }
     createHealthBar(x,y){
         this.heartArr = [];
         let step = this.CONFIG.tile;
-        for(let i = 0 ; i < this.player.health.current;i++){
+        for(let i = 0 ; i < this.player.health.total;i++){
             let icn = this.add.sprite(x + i*step,y,'heart').setDepth(this.DEPTH.ui).setOrigin(0).setScrollFactor(0).setScale(0.65).setFrame(0);
             this.heartArr.push(icn);
+        }
+    }
+    //pause logic
+    createPauseScreen(){
+        this.veil = this.add.graphics({x:0,y:0});
+        this.veil.fillStyle("0x000000",0.3);
+        this.veil.fillRect(0,0,this.CONFIG.width,this.CONFIG.height);
+        this.veil.setDepth(this.DEPTH.ui);
+
+        this.txt_pause = new Text(
+            this,this.CONFIG.centerX,this.CONFIG.centerY,'Pause','title'
+        );
+        this.txt_pause.setDepth(this.DEPTH.ui);
+        this.txt_pause.setScrollFactor(0);
+
+        this.tooglePauseScreen(false);
+    }
+    tooglePauseScreen(is_visible){
+        this.veil.setVisible(is_visible);
+        this.txt_pause.setVisible(is_visible);
+    }
+    handlePause(that){
+        // console.log("hadling the pause")
+        if(!that.allow_input)return;
+        if(that.is_gameover) return;
+        that.is_pause = !that.is_pause;
+        that.tooglePauseScreen(that.is_pause);
+
+        if(that.is_pause){
+            that.startPause();
+        }
+        else{
+            that.endPause();
+        }
+    }
+    startPause(){
+        if(this.player.states.walk){
+            if(this.player.pauseScroll === 0){
+                this.player.setPauseScroll(this.cameras.main.scrollY);
+            }
+            this.player.stopMoving();
+        }
+    }
+    endPause(){
+        if(this.player.states.idle){
+            if(this.player.pauseScroll !== 0){
+                this.player.setPauseScroll(0);
+            }
+            this.player.startMoving();   
         }
     }
 }

@@ -3,6 +3,7 @@ import Boot from '../scenes/boot.js'
 import Preload from '../scenes/preload.js'
 import Menu from '../scenes/menu.js'
 import Play from '../scenes/play'
+import GameOver from '../scenes/gameOver'
 export default class App{
     constructor(){
         this.VERSION = '0.0.1';
@@ -15,7 +16,8 @@ export default class App{
         scenes.push(Boot);
         scenes.push(Preload);
         scenes.push(Menu);
-        scenes.push(Play)
+        scenes.push(Play);
+        scenes.push(GameOver);
         //game config
 
         const config = {

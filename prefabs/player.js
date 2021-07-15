@@ -11,13 +11,16 @@ export default class Player extends Entity{
         }
         this.helper = new Helper()
         this.setHealth(3,3);
+        this.pauseScroll = 0;
     }
     //setters
     setDepth(d){
         this.spr.setDepth(d);
     }
     //
-
+    setPauseScroll(y){
+        this.pauseScroll = y;
+    }
     startMoving(){
         this.setStates('walk');
         this.startAnim('walk');
@@ -31,9 +34,10 @@ export default class Player extends Entity{
     update(is_holding){
         if(this.states.dead){
             this.handleDeadState();
+        }  
+        if(this.states.idle){
+            this.handlePauseState();
         }
-
-       
         this.setCurrentDirection(is_holding);
         if(this.states.walk){
             this.movePlayer();
@@ -48,6 +52,11 @@ export default class Player extends Entity{
         this.spr.setVelocityY(0);
         let scroll = this.ctx.cameras.main.scrollY;
         this.ctx.cameras.main.setScroll(0,this.spr.y - this.CONFIG.tile*1.7);
+    }
+    handlePauseState(){
+        this.spr.setVelocityX(0);
+        this.spr.setVelocityY(0);
+        this.ctx.cameras.main.setScroll(0,this.pauseScroll);
     }
     checkScrollDeath(){
         if(this.states.dead) return;
@@ -79,25 +88,17 @@ export default class Player extends Entity{
         }
     }
     movePlayer(){
+        if(!this.states.walk) return;
         // downward moving of the player
-
-        
         if(this.direction.current === 'down')
-        // this.setSpritePos(this.x,this.y + this.playerSpeed.current);
         this.spr.setVelocityX(0);
         this.spr.setVelocityY(this.playerSpeed.current);
-        
         //move the player left to left
-
         if(this.direction.current === 'left'){
-            // this.setSpritePos(this.x - this.playerSpeed.current, this.y);
             this.spr.setVelocityY(0);
             this.spr.setVelocityX(-this.playerSpeed.current);
-
         }
-
         if(this.direction.current === 'right'){
-            // this.setSpritePos(this.x + this.playerSpeed.current, this.y);
             this.spr.setVelocityY(0);
             this.spr.setVelocityX(this.playerSpeed.current);
         }

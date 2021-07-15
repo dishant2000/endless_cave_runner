@@ -23,8 +23,12 @@ export default class Text {
             case 'preload':
                 style.fontSize = 38;
                 break;
+            case 'score':
+                style.fontSize = 32;
+                break;
             case 'standard':
                 style.fontSize = 32;
+                
         }
         return style;
     }
@@ -66,5 +70,14 @@ export default class Text {
     setText(str){
         this.text = str;
         this.obj.setText(str) ;
+    }
+    setDepth(d){
+        this.obj.setDepth(d);
+    }
+    setScrollFactor(d){
+        this.obj.setScrollFactor(d);
+    }
+    setVisible(is_visible){
+        this.obj.setVisible(is_visible);
     }
 } 
