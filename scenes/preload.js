@@ -8,6 +8,7 @@ import wall32 from '../assets/img/wall32.png';
 import spikes from '../assets/img/spikes.png';
 import pauseButton from '../assets/img/btn_pause.png';
 import heart from '../assets/img/heart.png';
+import spr_slime from '../assets/img/slime.png';
 export default class Preload extends Phaser.Scene{
     constructor(){
         super({key : 'Preload', active : false});
@@ -31,6 +32,7 @@ export default class Preload extends Phaser.Scene{
         this.load.spritesheet('spike',spikes,{frameWidth:32,frameHeight:32,spacing:10});
         this.load.spritesheet('pause',pauseButton,{frameWidth:64,frameHeight:64});
         this.load.spritesheet('heart',heart,{frameWidth:32,frameHeight:32,spacing:10});
+        this.load.spritesheet('spr-slime',spr_slime,{frameWidth:25,frameHeight:25,spacing:10});
     }
     create(){
         //console.log("preload running ")

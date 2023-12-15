@@ -172,7 +172,12 @@ export default class Entity{
         this.health.total = total;
         this.health.current = Math.min(this.health.total,curr);
     }
-
+    setDepth(depth){
+        this.spr.setDepth(depth);
+    }
+    destroy(){
+        if(this.spr) this.spr.destroy();
+    }
     //getter methods
 
    getTopY(){

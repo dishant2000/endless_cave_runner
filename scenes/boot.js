@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import click_0 from '../assets/fonts/click_0.png';
-import click_0x from '../assets/fonts/click_0.xml'
+import click_0x from '../assets/fonts/click_0.xml';
 export default class Boot extends Phaser.Scene{
     constructor(){
         super({key : 'Boot', active : true});

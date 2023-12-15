@@ -1,4 +1,5 @@
 import Helper from './helper';
+import Monster from './Monster';
 export default class Generator{
     constructor(ctx){
         this.CONFIG = ctx.CONFIG;
@@ -99,7 +100,15 @@ export default class Generator{
         walls = this.createWalls(walls);
         //update the layers object 
         this.layers.walls = this.layers.walls.concat(walls);
-        // console.log(this.layers.walls);
+
+        // Add monsters
+        // ... generate
+        let monsters = this.generateMonsters();
+        // ... draw 
+        monsters = this.createMonsters(monsters);
+        // ... append
+        this.layers.walls = this.layers.monsters.concat(monsters);
+
         this.saveHeight();
         this.currHightFactor = curr_scroll + this.height;
         
@@ -221,9 +230,9 @@ export default class Generator{
         this.height += 30 * this.CONFIG.tile  ;
     }
     destroyPassedRows(){
-        let row_r_num = 0;;
+        let row_r_num = 0;
         for(let i = 0; i < this.layers.walls.length;i++){
-            if(this.layers.walls[i][0].spr){
+            if(this.layers.walls[i][0] && this.layers.walls[i][0].spr){
                 if(this.layers.walls[i][0].spr.y < this.px_offset){
                     row_r_num ++;
                 }
@@ -243,8 +252,55 @@ export default class Generator{
         for(let i = 0 ; i < row_r_num; i++){
             this.layers.walls.splice(0,1);
         }
+
+        // monsters
+        for(let i = this.layers.monsters.length - 1; i >=0; i--){
+            if(this.layers.monsters.y <= this.ctx.cameras.main.scrollY){
+                // destroy sprite
+                this.layers.monsters[i].destroy();
+                // remove from layers
+                this.layers.monsters.splice(i,1);
+            }
+        }
     }
 
+
+    // monsters layer
+    generateMonsters(){
+        // generate a random pos
+        let pos = this.getRandPosInRoom();
+        //check if its not a wall
+        while(this.layers.walls[pos.row] && this.layers.walls[pos.row][pos.col] && this.layers.walls[pos.row][pos.col].is_wall){
+            pos = this.getRandPosInRoom();
+        }
+        // spawn position in px
+        let spawn = {
+            tx : pos.col,
+            ty : pos.row,
+            x : this.CONFIG.map_offset + ((pos.col + 0.5) * this.CONFIG.tile),
+            y : ((pos.row + 0.5) * this.CONFIG.tile)
+        }
+        // return one new monster for each room
+        return [{
+            spawn : spawn,
+            key : this.getMonstersKey()
+        }]
+    }
+    getMonstersKey(){
+        let keys = ['spr-slime'];
+        let id = this.helper.genrateRangeRand(0, keys.length - 1);
+        return keys[id];
+    }
+    createMonsters(monsters){
+        for(let i = 0 ; i < monsters.length; i++){
+            monsters[i] = new Monster(
+                this.ctx,monsters[i].spawn.x, monsters[i].spawn.y, monsters[i].key
+            );
+            monsters[i].createSprite();
+            monsters[i].setDepth(this.DEPTH.monster);
+        }
+        return monsters;
+    }
     // overlay spikes
 
     drawSpikes(){
@@ -262,5 +318,27 @@ export default class Generator{
         }
 
         this.layers.overlay = overlay;
+    }
+
+    // helpers
+
+    getRandPosInRoom(){
+        let min = {
+            col : 0,
+            row : Math.floor((this.px_offset + this.ctx.cameras.main.height)/this.CONFIG.tile)
+        }
+
+        let max = {
+            col : this.cols - 1,
+            row : Math.floor((this.px_offset + this.CONFIG.height)/ this.CONFIG.tile)
+        }
+
+        let col = this.helper.genrateRangeRand(min.col,max.col);
+        let row = this.helper.genrateRangeRand(min.row, max.row);
+
+        return {
+            row : row,
+            col : col
+        }
     }
 }
